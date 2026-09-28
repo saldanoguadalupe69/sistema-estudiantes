@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sistema Estudiantes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Sistema Estudiantes <span>· tu cuatrimestre en orden</span></div>
+    <div class="who" id="who">Cargando…</div>
+  </header>
+
+  <div class="hero empty" id="hero">
+    <div class="days" id="heroDays">—</div>
+    <div class="what" id="heroWhat">Cuando cargues materias y fechas, acá vas a ver cuánto falta para tu próximo examen.</div>
+    <div class="meta" id="heroMeta"></div>
+  </div>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="inicio" aria-selected="true">Inicio</button>
+    <button role="tab" data-tab="calendario">Calendario</button>
+    <button role="tab" data-tab="plan">Plan</button>
+    <button role="tab" data-tab="ia">Tutor IA ✨</button>
+    <button role="tab" data-tab="materias">Mis materias</button>
+    <button role="tab" data-tab="resumenes">Resúmenes</button>
+    <button role="tab" data-tab="finales">Finales</button>
+    <button role="tab" data-tab="amigos" id="tabAmigos">Amigos</button>
+    <button role="tab" data-tab="dudas" id="tabDudas">Dudas</button>
+    <button role="tab" data-tab="chat" id="tabChat">Chat</button>
+  </nav>
+
+  <!-- INICIO -->
+  <section class="panel on" id="p-inicio">
+    <div id="alertas"></div>
+    <div class="grid2">
+      <div class="box">
+        <h2>Cómo venís</h2>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="box">
+        <h2>Tu carrera</h2>
+        <form class="inline" id="fCarrera" style="grid-template-columns:1fr">
+          <label>Carrera<input name="carrera" maxlength="80" placeholder="Ej: Ingeniería en Sistemas"></label>
+          <label>Universidad<input name="universidad" maxlength="80" placeholder="Ej: UNC, UTN FRC"></label>
+        </form>
+        <p class="hint">Se guarda solo. Tus amigos lo ven en tu perfil.</p>
+      </div>
+    </div>
+    <div class="box" style="margin-top:18px">
+      <h2>Recordatorios</h2>
+      <div class="toolbar" style="margin-bottom:6px">
+        <label>Avisarme<select id="recordarSel"><option value="1">1 día antes</option><option value="3">3 días antes</option><option value="7">1 semana antes</option></select></label>
+        <button class="btn ghost" id="notifBtn" type="button">Activar notificaciones</button>
+        <button class="btn ghost" id="icsBtn" type="button">📅 Pasar fechas al calendario del celu</button>
+      </div>
+      <p class="hint" id="notifEstado"></p>
+    </div>
+    <div class="box" style="margin-top:18px">
+      <h2>Próximas fechas</h2>
+      <ul class="clean" id="proximas"></ul>
+    </div>
+  </section>
+
+  <!-- CALENDARIO -->
+  <section class="panel" id="p-calendario">
+    <div class="box">
+      <div class="calhead">
+        <button class="btn ghost small" id="calPrev" aria-label="Mes anterior">‹ Anterior</button>
+        <h2 id="calTitle" style="margin:0"></h2>
+        <button class="btn ghost small" id="calNext" aria-label="Mes siguiente">Siguiente ›</button>
+      </div>
+      <div class="cal" id="cal"></div>
+    </div>
+    <div class="box" style="margin-top:18px">
+      <h2>Cargar una fecha</h2>
+      <form class="inline" id="fEvento">
+        <label>Materia<select name="materiaId" class="selMisMaterias" required></select></label>
+        <label>Tipo<select name="tipo"><option value="parcial">Parcial</option><option value="recu">Recuperatorio</option><option value="final">Final</option><option value="entrega">Entrega / TP</option><option value="propio">Otro (consulta, estudio…)</option></select></label>
+        <label>Nombre<input name="titulo" required placeholder="Ej: 1er parcial"></label>
+        <label>Fecha<input type="date" name="fecha" required></label>
+        <label>Hora<input type="time" name="hora"></label>
+        <label>Aula<input name="aula" placeholder="Opcional"></label>
+        <label style="grid-column:1/-1">Temas<textarea name="temas" placeholder="Unidades que entran (opcional)"></textarea></label>
+        <button class="btn" type="submit">Agregar fecha</button>
+      </form>
+      <h3 style="margin-top:18px">Tus fechas</h3>
+      <ul class="clean" id="adminEventos"></ul>
+    </div>
+  </section>
+
+  <!-- PLAN -->
+  <section class="panel" id="p-plan">
+    <div class="box" style="margin-bottom:18px">
+      <h2>Plan de estudio</h2>
+      <p class="sub" style="margin-top:-6px">Reparte tus resúmenes pendientes (o los temas de cada examen) en los días que faltan, y deja el último día para repasar.</p>
+      <div class="sub" style="margin-top:12px;font-weight:700">¿Qué días podés estudiar?</div>
+      <div class="pick" id="planDias"></div>
+      <button class="btn" id="planGen" type="button">Generar plan</button>
+      <button class="btn ghost ia-only" id="planIA" type="button">✨ Consejos de la IA</button>
+      <p class="hint" id="planInfo"></p>
+    </div>
+    <div id="planList"></div>
+  </section>
+
+  <!-- TUTOR IA -->
+  <section class="panel" id="p-ia">
+    <div id="iaOff" class="box" hidden>
+      <h2>Tutor IA</h2>
+      <p class="sub" id="iaOffMsg">La IA todavía no está activada.</p>
+    </div>
+    <div id="iaOn" class="box">
+      <div class="chat-head">
+        <div class="grow"><h2 style="font-size:1.15rem">Tutor IA ✨</h2><div class="sub">Preguntale lo que quieras, pedile que te explique un tema o mandale una foto de tus apuntes.</div></div>
+        <label style="min-width:180px">Materia<select id="iaMateria"></select></label>
+        <button class="btn ghost small" id="iaNueva" type="button">Nueva conversación</button>
+      </div>
+      <div class="chips" id="iaSug" style="margin-top:12px">
+        <button class="chip" type="button" data-iasug="Explicame desde cero el tema: ">📖 Explicame un tema</button>
+        <button class="chip" type="button" data-iasug="Haceme 5 preguntas de práctica, de a una, sobre: ">❓ Tomame preguntas</button>
+        <button class="chip" type="button" data-iasug="Pasá a texto y resumí esta foto de mis apuntes.">📷 Resumir una foto</button>
+        <button class="chip" type="button" data-iasug="Tengo este ejercicio y no sé cómo arrancar. Guiame sin darme la respuesta de una: ">🧩 Ayudame con un ejercicio</button>
+      </div>
+      <div class="msgs" id="iaMsgs" aria-live="polite"></div>
+      <div id="iaAdjunto" class="thumbs" hidden></div>
+      <form class="composer" id="fIA">
+        <label class="btn ghost fotobtn" title="Adjuntar foto" aria-label="Adjuntar foto">📷<input type="file" accept="image/*" id="iaFoto" hidden></label>
+        <textarea name="texto" rows="1" placeholder="Escribí tu pregunta" aria-label="Pregunta para la IA" maxlength="4000"></textarea>
+        <button class="btn" type="submit" id="iaEnviar">Enviar</button>
+      </form>
+      <p class="hint">La IA puede equivocarse: usala para entender y practicar, y chequeá con tus apuntes y tus profes.</p>
+    </div>
+  </section>
+
+  <!-- MATERIAS -->
+  <section class="panel" id="p-materias">
+    <div class="box" style="margin-bottom:18px">
+      <h2>Agregar materia</h2>
+      <form class="inline" id="fMateria">
+        <label>Nombre<input name="nombre" required maxlength="80" placeholder="Ej: Análisis Matemático II"></label>
+        <label>Año<select name="anio"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+        <label>Cuatrimestre<select name="cuatri"><option value="1">1º</option><option value="2">2º</option><option value="A">Anual</option></select></label>
+        <label>Profesor/a<input name="profesor" placeholder="Opcional"></label>
+        <label>Color<input type="color" name="color" value="#2F5BD3"></label>
+        <button class="btn" type="submit">Agregar materia</button>
+      </form>
+      <details style="margin-top:12px"><summary>Editar o borrar materias</summary><ul class="clean" id="adminMaterias"></ul></details>
+    </div>
+    <div class="grid2" id="misMaterias"></div>
+  </section>
+
+  <!-- RESUMENES -->
+  <section class="panel" id="p-resumenes">
+    <div class="box" style="margin-bottom:18px">
+      <h2>Nuevo resumen</h2>
+      <form class="inline" id="fResumen">
+        <label>Materia<select name="materiaId" class="selMisMaterias" required></select></label>
+        <label>Tema o unidad<input name="titulo" required placeholder="Ej: Unidad 3 – Integrales"></label>
+        <button class="btn" type="submit">Agregar resumen</button>
+      </form>
+    </div>
+    <div class="chips" id="filtroRes"></div>
+    <div class="grid2" id="resumenesList"></div>
+
+    <div class="box" style="margin-top:22px" id="resAmigosBox">
+      <h2>Resúmenes de tus amigos</h2>
+      <div class="toolbar">
+        <label>Materia<select id="filtroResAmigos"></select></label>
+      </div>
+      <div id="resAmigosList"></div>
+    </div>
+  </section>
+
+  <!-- AMIGOS -->
+  <section class="panel" id="p-amigos">
+    <div id="amigosOff" class="box" hidden><p class="empty-msg" style="padding:0">Para agregar amigos tenés que abrir la app desde su link con tu cuenta de Claude.</p></div>
+    <div id="amigosOn">
+      <div class="box" style="margin-bottom:18px" id="recibidasBox">
+        <h2>Solicitudes de amistad</h2>
+        <ul class="clean" id="recibidasList"></ul>
+      </div>
+      <div class="grid2">
+        <div class="box">
+          <h2>Mis amigos</h2>
+          <ul class="clean" id="amigosList"></ul>
+          <div id="enviadasWrap"></div>
+        </div>
+        <div class="box">
+          <h2>Buscar compañeros</h2>
+          <label>Nombre<input id="buscarInput" placeholder="Escribí un nombre" autocomplete="off"></label>
+          <ul class="clean" id="personasList" style="margin-top:8px"></ul>
+          <p class="hint">Aparecen las personas que ya usan la app. Cuando aceptan tu solicitud, pueden ver los resúmenes que compartan y responderse dudas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DUDAS -->
+  <section class="panel" id="p-dudas">
+    <div id="dudasOff" class="box" hidden><p class="empty-msg" style="padding:0">Las dudas se comparten con tus amigos, así que tenés que abrir la app desde su link con tu cuenta de Claude.</p></div>
+    <div id="dudasOn">
+      <div class="box" style="margin-bottom:18px">
+        <h2>Preguntale a tus amigos</h2>
+        <form class="inline" id="fDuda">
+          <label>Materia<select name="materiaId" class="selTodas" required></select></label>
+          <label style="grid-column:1/-1">Tu duda<textarea name="texto" required placeholder="Ej: ¿Alguien entendió cómo se aplica Green en el ejercicio 4?"></textarea></label>
+          <button class="btn" type="submit">Publicar duda</button>
+        </form>
+      </div>
+      <div class="box">
+        <div class="toolbar">
+          <label>Materia<select id="filtroDudaMat"></select></label>
+          <label>Mostrar<select id="filtroDudaEstado"><option value="todas">Todas</option><option value="abiertas">Sin resolver</option><option value="mias">Mis dudas</option></select></label>
+        </div>
+        <div id="dudasList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINALES -->
+  <section class="panel" id="p-finales">
+    <div class="box" style="margin-bottom:18px">
+      <h2>Finales pendientes</h2>
+      <p class="sub" style="margin-top:-6px">Aparecen acá las materias que marcaste como <b>regular</b> (cursada aprobada, falta el final).</p>
+      <ul class="clean" id="finalesList"></ul>
+    </div>
+    <div class="box">
+      <h2>Materias aprobadas</h2>
+      <div class="table-wrap"><ul class="clean" id="aprobadasList"></ul></div>
+    </div>
+  </section>
+
+  <!-- CHAT -->
+  <section class="panel" id="p-chat">
+    <div id="chatOff" class="box" hidden><p class="empty-msg" style="padding:0">El chat funciona cuando abrís la app desde su link con tu cuenta de Claude.</p></div>
+    <div id="chatOn" class="chat">
+      <aside class="box chat-side">
+        <h2>Grupos</h2>
+        <div class="glist" id="gruposList"></div>
+        <details id="nuevoGrupo" style="margin-top:12px">
+          <summary>Crear grupo</summary>
+          <form id="fGrupo" style="display:grid;gap:8px;margin-top:6px">
+            <label>Nombre del grupo<input name="nombre" required maxlength="60" placeholder="Ej: Física II – comisión B"></label>
+            <div class="sub">Sumá amigos</div>
+            <div class="pick" id="grupoMiembros"></div>
+            <button class="btn" type="submit" style="justify-self:start">Crear grupo</button>
+          </form>
+        </details>
+      </aside>
+      <div class="box chat-main">
+        <div id="chatEmpty"><p class="empty-msg" style="padding:0">Elegí un grupo para chatear, o creá uno con tus amigos.</p></div>
+        <div id="chatBody" hidden>
+          <div class="chat-head">
+            <button class="btn ghost small" id="chatBack" aria-label="Volver a los grupos">‹ Grupos</button>
+            <div class="grow"><h2 id="chatTitle" style="font-size:1.15rem"></h2><div class="sub" id="chatMembers"></div></div>
+            <button class="btn ghost small" id="chatAddBtn">Sumar amigos</button>
+            <button class="btn danger small" id="chatLeave">Salir del grupo</button>
+          </div>
+          <div id="chatAdd" hidden style="padding-top:10px">
+            <div class="pick" id="chatAddPick"></div>
+            <button class="btn small" id="chatAddOk">Agregar al grupo</button>
+          </div>
+          <div class="msgs" id="msgs" aria-live="polite"></div>
+          <form class="composer" id="fMsg">
+            <label class="btn ghost fotobtn" title="Mandar foto" aria-label="Mandar foto">📷<input type="file" accept="image/*" id="fotoChat" hidden></label>
+            <textarea name="texto" rows="1" placeholder="Escribí un mensaje" aria-label="Mensaje" required maxlength="2000"></textarea>
+            <button class="btn" type="submit">Enviar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="lightbox" hidden><img alt="Foto ampliada"></div>
+<div id="iaModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="iaModalTitle">
+  <div class="modal-card">
+    <div class="modal-head"><h2 id="iaModalTitle"></h2><button class="btn ghost small" id="iaModalClose" type="button" aria-label="Cerrar">✕</button></div>
+    <div id="iaModalBody" class="ia-out"></div>
+    <div id="iaModalActions" class="modal-actions"></div>
+  </div>
+</div>
+
+<!-- Firebase (base de datos + login) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-adapter.js"></script>
+<!-- App -->
+<script src="app.js"></script>
+<!-- IA (Gemini con Firebase AI Logic) -->
+<script type="module" src="ia.js"></script>
+</body>
+</html>
